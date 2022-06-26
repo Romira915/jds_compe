@@ -15,24 +15,38 @@ import pandas as pd
 from sklearn.feature_extraction.text import (CountVectorizer,
                                              HashingVectorizer,
                                              TfidfVectorizer)
+from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import accuracy_score, classification_report, make_scorer
 from sklearn.model_selection import KFold
 from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.neural_network import MLPClassifier
 
+TARGET_CATEGORIES = ["名詞", "動詞",  "形容詞", "副詞", "連体詞", "感動詞"]
 # In[35]:
+# wakati = MeCab.Tagger(
+#     "-r /home/linuxbrew/.linuxbrew/etc/mecabrc -d /home/linuxbrew/.linuxbrew/lib/mecab/dic/ipadic -O wakati")
 wakati = MeCab.Tagger(
     "-r /home/linuxbrew/.linuxbrew/etc/mecabrc -d /home/linuxbrew/.linuxbrew/lib/mecab/dic/ipadic -O wakati")
 
 
-def tokenize(word):
-    tf = wakati.parse(word)
-    return tf.split()
+def tokenize(text):
+    # node = wakati.parse(text)
+    # words = []
+    # for row in node.split('\n'):
+    #     info = row.split("\t")
+    #     if info[0] == "EOS":
+    #         break
+    #     else:
+    #         pos = info[1].split(",")
+    #         for p in pos:
+    #             if p in TARGET_CATEGORIES:
+    #                 words.append(info[0])
+    words = wakati.parse(text).split()
+    return words
 
 
 # In[36]:
-
 
 train_df = pd.read_csv("./train.csv")
 test_df = pd.read_csv("./test.csv")
@@ -56,14 +70,18 @@ compe_text = compe_df["text"].values.astype('U')
 
 
 # In[14]:
-
-
-vectorizer = HashingVectorizer(analyzer=tokenize)
+vectorizer = TfidfVectorizer(use_idf=True, analyzer=tokenize)
 vectorizer.fit(train_text)
 X = vectorizer.transform(train_text)
 test_vec = vectorizer.transform(test_text)
 compe_vec = vectorizer.transform(compe_text)
 
+print(X.shape)
+skb = SelectKBest(k=10000)
+skb.fit(X, y)
+X = skb.transform(X)
+test_vec = skb.transform(test_vec)
+compe_vec = skb.transform(compe_vec)
 
 # In[16]:
 
@@ -77,7 +95,8 @@ kf = KFold(n_splits=3)
 for fold, (tr_idx, va_idx) in enumerate(kf.split(X, y)):
     x_train, y_train = X[tr_idx], y[tr_idx]
     x_valid, y_valid = X[va_idx], y[va_idx]
-    m = MLPClassifier(max_iter=300, hidden_layer_sizes=(100,), verbose=10,)
+    # m = MLPClassifier(max_iter=300, hidden_layer_sizes=(100,), verbose=10,)
+    m = MultinomialNB(alpha=.01)
     m.fit(x_train, y_train)
     p = m.predict(x_valid)
     train_check[va_idx] += p
