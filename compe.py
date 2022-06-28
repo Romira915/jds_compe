@@ -79,7 +79,7 @@ class CreateDataset(Dataset):
 
 # %%
 # 最大系列長の指定
-MAX_LEN = 128
+MAX_LEN = 32 + 16
 
 # tokenizerの取得
 tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
@@ -108,7 +108,6 @@ class BERTClass(torch.nn.Module):
 
     def forward(self, ids, mask):
         _, out = self.bert(ids, attention_mask=mask, return_dict=False)
-        print(out)
         out = self.fc(self.drop(out))
         return out
 
@@ -179,6 +178,9 @@ def train_model(dataset_train, dataset_valid, batch_size, model, criterion, opti
             outputs = model(ids, mask)
             loss = criterion(outputs, labels)
             loss.backward()
+
+            del loss
+
             optimizer.step()
 
         # 損失と正解率の算出
@@ -206,8 +208,8 @@ def train_model(dataset_train, dataset_valid, batch_size, model, criterion, opti
 # パラメータの設定
 DROP_RATE = 0.7
 OUTPUT_SIZE = 2
-BATCH_SIZE = 8
-NUM_EPOCHS = 4
+BATCH_SIZE = 32
+NUM_EPOCHS = 8
 LEARNING_RATE = 2e-5
 
 # モデルの定義
