@@ -161,6 +161,8 @@ cython_debug/
 
 *.csv
 *.pt
+*.pkl
 logs
 results
 .tmp
+compe.py
