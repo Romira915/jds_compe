@@ -1,42 +1,63 @@
 import codecs
+import csv
+import time
+import urllib.parse
 
+import deepl
+import lxml
 import pandas as pd
+import pyperclip
+import pyppeteer
 import requests
 from bs4 import BeautifulSoup
+from deepl import deepl
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 
-# Chrome のオプションを設定する
-options = webdriver.ChromeOptions()
-options.add_argument('--headless')
+# # Chrome のオプションを設定する
+# options = webdriver.ChromeOptions()
+# options.add_argument('--headless')
 
-# Selenium Server に接続する
-driver = webdriver.Remote(
-    command_executor='http://localhost:4444/wd/hub',
-    desired_capabilities=options.to_capabilities(),
-    options=options,
-)
+# # Selenium Server に接続する
+# driver = webdriver.Remote(
+#     command_executor='http://localhost:4444/wd/hub',
+#     desired_capabilities=options.to_capabilities(),
+#     options=options,
+# )
 
-# Selenium 経由でブラウザを操作する
-driver.get('https://qiita.com')
-print(driver.current_url)
+# # Selenium 経由でブラウザを操作する
+# driver.get('https://qiita.com')
+# print(driver.current_url)
 
-# ブラウザを終了する
-driver.quit()
+# # ブラウザを終了する
+# driver.quit()
 
-url = r"https://www.deepl.com/translator#en/ja/I%20couldn't%20bear%20to%20watch%20it.%20%20And%20I%20thought%20the%20UA%20loss%20was%20embarrassing"
-res = requests.get(url)
-print(res.text.find("見るに耐えなかった"))
+translater = deepl.DeepLCLI("en", "ja")
 
-soup = BeautifulSoup(res.text, "html.parser")
-elems = soup.select("#dl_translator > div.lmt__text > div.lmt__sides_container > div.lmt__side_container.lmt__side_container--target > div.lmt__textarea_container.lmt__textarea_container_no_shadow > div.lmt__translations_as_text > p.lmt__translations_as_text__item.lmt__translations_as_text__main_translation > button.lmt__translations_as_text__text_btn")
+names = ("target", "ids", "date", "flag", "user", "text")
 
-# names = ("target", "ids", "date", "flag", "user", "text")
+with codecs.open("training.1600000.processed.noemoticon.csv", "r", "utf-8", "ignore") as f:
+    df = pd.read_csv(f, names=names)
 
-# with codecs.open("training.1600000.processed.noemoticon.csv", "r", "utf-8", "ignore") as f:
-#     df = pd.read_csv(f, names=names)
+size = df.shape[0]
 
-# print(df.shape)
-# df[0:50000].to_csv("only_text0.csv", columns=["text"], index=False, header=False)
+with open("training.1600000.processed.noemoticon-ja.csv", mode="a") as f:
+    writer = csv.writer(f, quoting=csv.QUOTE_ALL)
+    for index, target, ids, date, flag, user, text in zip(range(size), df[names[0]], df[names[1]], df[names[2]], df[names[3]], df[names[4]], df[names[5]]):
+        try:
+            ja = translater.translate(text)
+        except pyppeteer.errors.NetworkError:
+            pass
+        except:
+            f.flush()
+            print(f"error: index {index}")
+
+        print(f"{index} {ja}")
+        time.sleep(1)
+        writer.writerow([target, ids, date, flag, user, ja])
+        f.flush()
+
 
 # batch_size = 50000
 # iter = int(df.shape[0] / batch_size)
