@@ -1,37 +1,11 @@
 import codecs
 import csv
 import time
-import urllib.parse
 
 import deepl
-import lxml
 import pandas as pd
-import pyperclip
 import pyppeteer
-import requests
-from bs4 import BeautifulSoup
 from deepl import deepl
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-
-# # Chrome のオプションを設定する
-# options = webdriver.ChromeOptions()
-# options.add_argument('--headless')
-
-# # Selenium Server に接続する
-# driver = webdriver.Remote(
-#     command_executor='http://localhost:4444/wd/hub',
-#     desired_capabilities=options.to_capabilities(),
-#     options=options,
-# )
-
-# # Selenium 経由でブラウザを操作する
-# driver.get('https://qiita.com')
-# print(driver.current_url)
-
-# # ブラウザを終了する
-# driver.quit()
 
 translater = deepl.DeepLCLI("en", "ja")
 
@@ -40,18 +14,26 @@ names = ("target", "ids", "date", "flag", "user", "text")
 with codecs.open("training.1600000.processed.noemoticon.csv", "r", "utf-8", "ignore") as f:
     df = pd.read_csv(f, names=names)
 
+start = 400000
+end = 800000
+df = df[start:end]
 size = df.shape[0]
 
-with open("training.1600000.processed.noemoticon-ja.csv", mode="a") as f:
+with open("training.1600000.processed.noemoticon-ja-400000-800000.csv", mode="a") as f:
     writer = csv.writer(f, quoting=csv.QUOTE_ALL)
-    for index, target, ids, date, flag, user, text in zip(range(size), df[names[0]], df[names[1]], df[names[2]], df[names[3]], df[names[4]], df[names[5]]):
+    ja = ""
+    for index, target, ids, date, flag, user, text in zip(range(start, end), df[names[0]], df[names[1]], df[names[2]], df[names[3]], df[names[4]], df[names[5]]):
         try:
             ja = translater.translate(text)
         except pyppeteer.errors.NetworkError:
             pass
         except:
             f.flush()
-            print(f"error: index {index}")
+            err = f"error: index {index}"
+            print(err)
+            with open("logs/error.log", mode="w") as log:
+                log.write(err)
+            exit(-1)
 
         print(f"{index} {ja}")
         time.sleep(1)

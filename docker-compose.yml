@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  python:
+    restart: always
+    build: .
+    tty: true
+    working_dir: "/python/"
+    volumes:
+      - ./:/python
+    command: /bin/bash -c "python translation_dataset.py"
