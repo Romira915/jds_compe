@@ -14,29 +14,29 @@ names = ("target", "ids", "date", "flag", "user", "text")
 with codecs.open("training.1600000.processed.noemoticon.csv", "r", "utf-8", "ignore") as f:
     df = pd.read_csv(f, names=names)
 
-start = 1820
+start = 1848
 end = 800000
 df = df[start:end]
 size = df.shape[0]
 
 with open("training.1600000.processed.noemoticon-ja-0-800000.csv", mode="a") as f:
     writer = csv.writer(f, quoting=csv.QUOTE_ALL)
-    ja = ""
+
     for index, target, ids, date, flag, user, text in zip(range(start, end), df[names[0]], df[names[1]], df[names[2]], df[names[3]], df[names[4]], df[names[5]]):
+        ja = ""
         try:
             ja = translater.translate(text)
         except pyppeteer.errors.NetworkError:
             pass
         except:
             f.flush()
-            err = f"error: index {index}"
+            err = f"error: index {index}, ids {ids}"
             print(err)
-            with open("logs/error.log", mode="w") as log:
+            with open("logs/error.log", mode="a") as log:
                 log.write(err)
-            exit(0)
+            exit(-1)
 
-        print(f"{index} {ja}")
-        time.sleep(1)
+        print(f"{index}, {ids}: {ja}")
         writer.writerow([target, ids, date, flag, user, ja])
         f.flush()
 
