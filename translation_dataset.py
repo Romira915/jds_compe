@@ -14,7 +14,7 @@ names = ("target", "ids", "date", "flag", "user", "text")
 with codecs.open("training.1600000.processed.noemoticon.csv", "r", "utf-8", "ignore") as f:
     df = pd.read_csv(f, names=names)
 
-start = 3403
+start = 11638
 end = 800000
 df = df[start:end]
 size = df.shape[0]
@@ -33,7 +33,7 @@ with open("training.1600000.processed.noemoticon-ja-0-800000.csv", mode="a") as 
             err = f"timeout: index {index}, ids {ids}"
             print(err)
             with open("logs/error.log", mode="a") as log:
-                log.write(err)
+                log.write(err + "\n")
         except:
             f.flush()
             err = f"error: index {index}, ids {ids}"
