@@ -14,12 +14,12 @@ names = ("target", "ids", "date", "flag", "user", "text")
 with codecs.open("training.1600000.processed.noemoticon.csv", "r", "utf-8", "ignore") as f:
     df = pd.read_csv(f, names=names)
 
-start = 3403
-end = 800000
+start = 1223489
+end = 1600000
 df = df[start:end]
 size = df.shape[0]
 
-with open("training.1600000.processed.noemoticon-ja-0-800000.csv", mode="a") as f:
+with open("training.1600000.processed.noemoticon-ja-1200000-1600000.csv", mode="a") as f:
     writer = csv.writer(f, quoting=csv.QUOTE_ALL)
 
     for index, target, ids, date, flag, user, text in zip(range(start, end), df[names[0]], df[names[1]], df[names[2]], df[names[3]], df[names[4]], df[names[5]]):
@@ -36,7 +36,7 @@ with open("training.1600000.processed.noemoticon-ja-0-800000.csv", mode="a") as 
                 log.write(err)
         except:
             f.flush()
-            err = f"error: index {index}, ids {ids}"
+            err = f"timeout: index {index}, ids {ids}"
             print(err)
             with open("logs/error.log", mode="a") as log:
                 log.write(err)
