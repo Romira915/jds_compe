@@ -14,12 +14,12 @@ names = ("target", "ids", "date", "flag", "user", "text")
 with codecs.open("training.1600000.processed.noemoticon.csv", "r", "utf-8", "ignore") as f:
     df = pd.read_csv(f, names=names)
 
-start = 11638
+start = 702062
 end = 800000
 df = df[start:end]
 size = df.shape[0]
 
-with open("training.1600000.processed.noemoticon-ja-1200000-1600000.csv", mode="a") as f:
+with open("training.1600000.processed.noemoticon-ja-700000-800000.csv", mode="a") as f:
     writer = csv.writer(f, quoting=csv.QUOTE_ALL)
 
     for index, target, ids, date, flag, user, text in zip(range(start, end), df[names[0]], df[names[1]], df[names[2]], df[names[3]], df[names[4]], df[names[5]]):
